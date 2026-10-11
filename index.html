@@ -199,6 +199,38 @@ h2,h3,p{margin:0;font-weight:400}
   .footer__meta{left:calc(var(--m) * 24);right:calc(var(--m) * 24);bottom:calc(var(--m) * 14);font-size:calc(var(--m) * 11.5);line-height:calc(var(--m) * 16)}
 }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+
+/* One opening composition. Background photography and layout never move.
+   Backwards fill hides each group until its cue; after its single pass, the
+   animation releases every property back to the original static stylesheet. */
+@media (prefers-reduced-motion:no-preference){
+  @keyframes entrance-title{
+    from{opacity:0;transform:translate3d(0,14px,0);clip-path:inset(100% 0 0)}
+    to{opacity:1;transform:none;clip-path:inset(0)}
+  }
+  @keyframes entrance-rise{
+    from{opacity:0;transform:translate3d(0,8px,0)}
+    to{opacity:1;transform:none}
+  }
+  @keyframes entrance-quiet{
+    from{opacity:0}
+    to{opacity:1}
+  }
+  @keyframes entrance-field{
+    from{clip-path:inset(0 100% 0 0)}
+    to{clip-path:inset(0)}
+  }
+
+  .hero__title{animation:entrance-title .9s cubic-bezier(.19,1,.22,1) .12s 1 backwards}
+  .hero__text{animation:entrance-rise .7s cubic-bezier(.22,1,.36,1) .48s 1 backwards}
+  .signup{animation:entrance-rise .66s cubic-bezier(.22,1,.36,1) .79s 1 backwards}
+  .signup__field{animation:entrance-field .7s cubic-bezier(.22,1,.36,1) .86s 1 backwards}
+  .footer__col{animation:entrance-rise .54s cubic-bezier(.22,1,.36,1) 1.12s 1 backwards}
+  .footer__col:nth-child(2){animation-delay:1.2s}
+  .footer__col:nth-child(3){animation-delay:1.28s}
+  .footer__legal{animation:entrance-quiet .48s cubic-bezier(.22,1,.36,1) 1.44s 1 backwards}
+  .footer__meta{animation:entrance-quiet .5s cubic-bezier(.22,1,.36,1) 1.52s 1 backwards}
+}
 </style>
 </head>
 <body>
