@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+<title>ÉCRIN — Stay Close</title>
+<meta name="description" content="ÉCRIN — slow letters with scents, thoughts and something worth waiting for.">
+<style>
+/* ---------- Embedded fonts (fully offline) ---------- */
+@font-face{font-family:"Libre Caslon Display";font-style:normal;font-weight:400;font-display:block;src:url(/assets/libre-caslon-display.woff2) format("woff2")}
+@font-face{font-family:"Hanken Grotesk";font-style:normal;font-weight:400;font-display:block;src:url(/assets/hanken-grotesk.woff2) format("woff2")}
+
+/* ---------- Design tokens (sampled from the reference) ---------- */
+:root{
+  --ink:#0b0b0b; --paper:#fdfdfd; --white:#ffffff; --sea:#1b2a36;
+  --serif:"Libre Caslon Display","Libre Caslon Text",Georgia,"Times New Roman",serif;
+  --sans:"Hanken Grotesk","HK Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --hero-img:url(/assets/hero.webp);
+  --soap-img:url(/assets/soap.webp);
+  /* true visible viewport height (mobile browser chrome excluded) */
+  --vh:100vh;
+}
+@supports (height:100dvh){ :root{--vh:100dvh} }
+
+/* =====================================================================
+   ONE-SCREEN ARCHITECTURE
+   The page is always exactly one viewport tall and wide — no scrolling,
+   no scrollbar, no blank bands. Each layout below is drawn in its own
+   design units, and that unit is min(width-fit, height-fit), so the whole
+   composition is guaranteed to fit inside the screen on both axes.
+     A  Desktop / landscape  (aspect ≥ 6:5, height ≥ 600)  → reference artboard 2048×1447
+     B  Short landscape      (aspect ≥ 6:5, height < 600)  → side-by-side, base 844×390
+     C  Portrait / square    (aspect < 6:5)                → stacked, base 390×844
+   ===================================================================== */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--paper);scrollbar-width:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+a{color:inherit;text-decoration:none}
+ul{list-style:none;margin:0;padding:0}
+h2,h3,p{margin:0;font-weight:400}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.page{position:fixed;inset:0;width:100vw;height:var(--vh);display:flex;flex-direction:column;overflow:hidden}
+
+/* ---------- Hero / newsletter (shared) ---------- */
+.hero{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;color:var(--white);
+  background:var(--sea);isolation:isolate;container-type:size;
+  --tt:27cqh; /* top of the text zone, hero-relative (overridden per layout) */
+  /* geometry of the cover-fitted photo — resolved inside the hero's children (cq units → the hero) */
+  --iw:max(100cqw, 100cqh * 2.33374);
+  --ih:calc(var(--iw) / 2.33374);
+  --y:clamp(100cqh - var(--ih),
+            max(min((100cqh - var(--ih)) / 2, var(--tt) - 0.8cqh - var(--ih) * 0.2619),
+                var(--headroom) - var(--ih) * 0.1072),
+            0px);
+  /* headroom above the nose: 5.5% of the hero, reduced only on extreme ultrawides
+     where face + text block would not otherwise fit (never below 1%) */
+  --headroom:max(1cqh, min(5.5cqh, 100cqh - var(--u, 0px) * 400 - var(--ih) * 0.1547 - 0.8cqh));
+  --face-b:calc(var(--y) + var(--ih) * 0.2619); /* under-chin line, hero-relative */}
+
+/* ---------- Face-anchored photo ----------
+   Source photo 1916×821 (ratio 2.33374). Face box measured in the source:
+   nose tip y 88 (10.72%), under-chin y 215 (26.19%), x 860–1060 (centred).
+   The layer always covers the hero, then picks the vertical offset that
+   (1) keeps the reference's centred framing when possible,
+   (2) lifts the photo so the chin clears the text zone,
+   (3) never lets the nose leave the top edge — the face is never cropped.  */
+.hero__media{position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:var(--hero-img) 50% 0%/cover no-repeat} /* fallback: top-anchored so the face can never be cut */
+@supports (width:1cqw){
+  .hero__media{
+    background-size:var(--iw) var(--ih);
+    background-position:calc((100cqw - var(--iw)) / 2) var(--y);
+  }
+}
+.hero::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:rgba(53,88,143,.10)} /* cool grade sampled from reference water */
+.hero__inner{position:relative;z-index:1;text-align:center}
+.hero__title{font-family:var(--serif);text-transform:uppercase;line-height:1;letter-spacing:0;white-space:nowrap}
+.hero__text{font-family:var(--sans);letter-spacing:0;margin-inline:auto}
+.hero__text br{display:none}
+
+.signup{position:relative;margin-inline:auto;text-align:left}
+.signup__field{display:flex;align-items:center;border-bottom:solid var(--white)}
+.signup input{flex:1;min-width:0;height:100%;background:transparent;border:0;outline:0;margin:0;color:var(--white);
+  font-family:var(--sans);font-weight:400;letter-spacing:0;border-radius:0;-webkit-appearance:none;appearance:none}
+.signup input::placeholder{color:var(--white);opacity:1}
+.signup input:focus::placeholder{opacity:.55}
+.signup button{flex:none;display:grid;place-items:center;background:none;border:0;padding:0;margin:0;color:var(--white);cursor:pointer;
+  transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.signup button:hover,.signup button:focus-visible{transform:translateX(4px)}
+.signup button:focus-visible{outline:1px solid rgba(255,255,255,.6);outline-offset:4px}
+.signup button svg{display:block;width:100%;height:100%;overflow:visible}
+.signup__msg{position:absolute;left:0;right:0;text-align:center;font-family:var(--sans);opacity:0;transition:opacity .4s}
+.signup.is-done .signup__msg{opacity:.9}
+
+/* ---------- Footer (shared) ---------- */
+.footer{display:grid;flex:none;min-height:0;background:var(--paper)}
+.footer__links{position:relative;min-width:0;background:var(--paper)}
+.footer__nav{display:grid}
+.footer__col h3{font:inherit}
+.footer__col a,.footer__col h3,.footer__legal a,.footer__meta>*{white-space:nowrap}
+.footer a{transition:opacity .25s}
+.footer a:hover,.footer a:focus-visible{opacity:.55}
+.footer__legal,.footer__meta{display:flex;justify-content:space-between;align-items:baseline}
+.footer__media{position:relative;min-width:0;overflow:hidden;background:#e9e4dc}
+/* photo layer: cover, anchored top-left, zoomed 1.0597× exactly as in the artboard (1060.1px over a 1001px panel) */
+.footer__media::before{content:"";position:absolute;inset:0;background:var(--soap-img) 0 0/cover no-repeat;transform:scale(1.0597);transform-origin:0 0}
+.footer__media::after{content:"";position:absolute;inset:0;pointer-events:none;background:rgba(155,180,210,.10)} /* grade sampled from reference */
+.footer__meta{position:absolute;z-index:1;text-shadow:0 0 2px rgba(255,255,255,.75),0 0 5px rgba(255,255,255,.4)}
+
+/* =====================================================================
+   A — DESKTOP / LANDSCAPE: reference artboard 2048 × 1447
+   --u  = design px for type & vertical metrics (fits both axes)
+   --ux = design px along the width (keeps horizontal proportions)
+   At the reference aspect ratio --u == --ux and the render is 1:1.
+   ===================================================================== */
+@media (min-aspect-ratio:6/5) and (min-height:600px){
+  .page{--ux:calc(100vw / 2048);--u:min(calc(100vw / 2048), calc(var(--vh) / 1447))}
+
+  .hero{--tt:calc(50cqh - var(--u) * 201.5)}
+  .hero__inner{position:absolute;left:0;right:0;top:calc(50% - var(--u) * 201.5)}
+  /* reference position, pushed down only when the face needs the room (wide / ultrawide),
+     and never so far that the form leaves the hero */
+  @supports (width:1cqw){
+    .hero__inner{top:min(max(50cqh - var(--u) * 201.5, var(--face-b) + 0.8cqh), 100cqh - var(--u) * 400)}
+  }
+  .hero__title{font-size:calc(var(--u) * 49.66);padding-left:calc(var(--u) * 2 * 2)}
+  .hero__text{font-size:calc(var(--u) * 26);line-height:calc(var(--u) * 40);margin-top:calc(var(--u) * 39);white-space:nowrap;padding-left:calc(var(--u) * 1.5 * 2)}
+  .hero__text br{display:inline}
+  .signup{width:calc(var(--u) * 726);margin-top:calc(var(--u) * 115);left:calc(var(--u) * 1)}
+  .signup__field{border-bottom-width:max(1px, calc(var(--u) * 2));height:calc(var(--u) * 70);padding-top:calc(var(--u) * 4)}
+  .signup input{font-size:calc(var(--u) * 26);padding:0 0 0 calc(var(--u) * 24)}
+  .signup button{width:calc(var(--u) * 34);height:calc(var(--u) * 22);margin-right:calc(var(--u) * 15)}
+  .signup__msg{top:calc(100% + var(--u) * 18);font-size:calc(var(--u) * 20)}
+
+  .footer{grid-template-columns:calc(100% * 1047 / 2048) 1fr;height:calc(var(--u) * 670)}
+  .footer__links{padding:calc(var(--u) * 144) calc(var(--ux) * 89) 0 calc(var(--ux) * 192);font-size:calc(var(--u) * 21.0);line-height:calc(var(--u) * 28)}
+  .footer__nav{grid-template-columns:calc(var(--ux) * 285) calc(var(--ux) * 284) 1fr}
+  .footer__col h3{font-size:calc(var(--u) * 20.4);margin-bottom:calc(var(--u) * 27)}
+  .footer__col li + li{margin-top:calc(var(--u) * 20.5)}
+  .footer__legal{position:absolute;left:calc(var(--ux) * 192);right:calc(var(--ux) * 89);bottom:calc(var(--u) * 30);font-size:calc(var(--u) * 18.2);line-height:calc(var(--u) * 28)}
+  .footer__meta{left:calc(var(--ux) * 85);right:calc(var(--ux) * 192);bottom:calc(var(--u) * 30);font-size:calc(var(--u) * 18.2);line-height:calc(var(--u) * 28)}
+  .footer__copy{letter-spacing:calc(var(--u) * -0.48)}
+}
+
+/* =====================================================================
+   B — SHORT LANDSCAPE (phones on their side, short windows): base 844 × 390
+   Hero on the left, footer column on the right.
+   ===================================================================== */
+@media (min-aspect-ratio:6/5) and (max-height:599.98px){
+  .page{--s:min(calc(100vw / 844), calc(var(--vh) / 390));flex-direction:row}
+  .hero__inner{position:absolute;left:0;right:0;bottom:0;top:var(--tt);display:grid;place-content:center;padding:0 calc(var(--s) * 28) calc(var(--s) * 10)}
+  .hero__title{font-size:calc(var(--s) * 26)}
+  .hero__text{max-width:calc(var(--s) * 400);font-size:calc(var(--s) * 13);line-height:calc(var(--s) * 20);margin-top:calc(var(--s) * 14)}
+  .signup{width:calc(var(--s) * 380);margin-top:calc(var(--s) * 26)}
+  .signup__field{border-bottom-width:max(1px, calc(var(--s) * 1.5));height:calc(var(--s) * 40)}
+  .signup input{font-size:calc(var(--s) * 14);padding-left:calc(var(--s) * 10)}
+  .signup button{width:calc(var(--s) * 22);height:calc(var(--s) * 14);margin-right:calc(var(--s) * 8)}
+  .signup__msg{top:calc(100% + var(--s) * 8);font-size:calc(var(--s) * 11)}
+
+  .footer{width:calc(var(--s) * 372);display:flex;flex-direction:column}
+  .footer__links{flex:none;padding:calc(var(--s) * 22) calc(var(--s) * 20) 0;font-size:calc(var(--s) * 12);line-height:calc(var(--s) * 16)}
+  .footer__nav{grid-template-columns:repeat(3,auto);justify-content:space-between}
+  .footer__col h3{margin-bottom:calc(var(--s) * 10)}
+  .footer__col li + li{margin-top:calc(var(--s) * 6)}
+  .footer__legal{margin-top:calc(var(--s) * 16);padding-bottom:calc(var(--s) * 14);font-size:calc(var(--s) * 11);line-height:calc(var(--s) * 16)}
+  .footer__media{flex:1 1 auto}
+  .footer__media::before{background-position:52% 46%;transform:none}
+  .footer__meta{left:calc(var(--s) * 20);right:calc(var(--s) * 20);bottom:calc(var(--s) * 12);font-size:calc(var(--s) * 11);line-height:calc(var(--s) * 16)}
+}
+
+/* =====================================================================
+   C — PORTRAIT / SQUARE (phones, portrait tablets): base 390 × 844
+   Stacked: hero fills what the footer leaves; footer is fixed-height.
+   ===================================================================== */
+@media not all and (min-aspect-ratio:6/5){
+  .page{--m:min(calc(100vw / 390), calc(var(--vh) / 844))}
+  .hero__inner{position:absolute;left:0;right:0;bottom:0;top:var(--tt);display:grid;place-content:center;padding:0 calc(var(--m) * 24) calc(var(--m) * 16)}
+  .hero::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(8,16,24,.12) 0%,rgba(8,16,24,.36) 50%,rgba(8,16,24,.12) 100%)}
+  .hero__title{font-size:calc(var(--m) * 30)}
+  .hero__text{max-width:calc(var(--m) * 342);font-size:calc(var(--m) * 15);line-height:calc(var(--m) * 23);margin-top:calc(var(--m) * 16)}
+  .signup{width:calc(var(--m) * 342);margin-top:calc(var(--m) * 32)}
+  .signup__field{border-bottom-width:max(1px, calc(var(--m) * 1.5));height:calc(var(--m) * 46)}
+  .signup input{font-size:calc(var(--m) * 16);padding-left:calc(var(--m) * 4)}
+  .signup button{width:calc(var(--m) * 26);height:calc(var(--m) * 17);margin-right:calc(var(--m) * 4)}
+  .signup__msg{top:calc(100% + var(--m) * 10);font-size:calc(var(--m) * 13)}
+
+  .footer{grid-template-columns:minmax(0,1fr)}
+  .footer__links{padding:calc(var(--m) * 26) calc(var(--m) * 24) 0;font-size:calc(var(--m) * 12.5);line-height:calc(var(--m) * 18)}
+  .footer__nav{grid-template-columns:repeat(3,auto);justify-content:space-between}
+  .footer__col h3{margin-bottom:calc(var(--m) * 12)}
+  .footer__col li + li{margin-top:calc(var(--m) * 9)}
+  .footer__legal{padding:calc(var(--m) * 20) 0 calc(var(--m) * 18);font-size:calc(var(--m) * 12);line-height:calc(var(--m) * 17)}
+  .footer__media{height:calc(var(--m) * 150)}
+  .footer__media::before{background-position:52% 46%;transform:none}
+  .footer__meta{left:calc(var(--m) * 24);right:calc(var(--m) * 24);bottom:calc(var(--m) * 14);font-size:calc(var(--m) * 11.5);line-height:calc(var(--m) * 16)}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<div class="page">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero__media" aria-hidden="true"></div>
+    <div class="hero__inner">
+      <h2 class="hero__title" id="hero-title">Stay close. Quietly.</h2>
+      <p class="hero__text">We don’t send noise. Just slow letters — with scents, thoughts and something worth waiting for. You’ll be<br> the first to know about new aromas, restocks, and private rituals.</p>
+      <form class="signup" id="signup" novalidate>
+        <label class="sr-only" for="email">Email</label>
+        <div class="signup__field">
+          <input id="email" name="email" type="email" placeholder="Email" autocomplete="email" inputmode="email" required>
+          <button type="submit" aria-label="Subscribe">
+            <svg viewBox="0 0 34 22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M1 11H32.4"/><path d="M23.2 2.2L32.4 11L23.2 19.8"/>
+            </svg>
+          </button>
+        </div>
+        <p class="signup__msg" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer__links">
+      <nav class="footer__nav" aria-label="Footer">
+        <div class="footer__col">
+          <h3>Quick Links</h3>
+          <ul><li><a href="#">Aromas</a></li><li><a href="#">Rituals</a></li><li><a href="#">Philosophy</a></li><li><a href="#">Shop</a></li></ul>
+        </div>
+        <div class="footer__col">
+          <h3>Resources</h3>
+          <ul><li><a href="#">FAQ</a></li><li><a href="#">Shipping &amp; returns</a></li><li><a href="#">Track my order</a></li></ul>
+        </div>
+        <div class="footer__col footer__col--social">
+          <h3>Socials</h3>
+          <ul><li><a href="#">Instagram</a></li><li><a href="#">Facebook</a></li><li><a href="#">Twitter</a></li></ul>
+        </div>
+      </nav>
+      <div class="footer__legal"><a href="#">Privacy policy</a><a href="#">Terms &amp; conditions</a></div>
+    </div>
+    <div class="footer__media" role="img" aria-label="An ÉCRIN soap bar resting in lathered water">
+      <div class="footer__meta"><a href="mailto:contact@ecrin.com">contact@ecrin.com</a><span class="footer__copy">All rights reserved © 2024 ÉCRIN.</span></div>
+    </div>
+  </footer>
+</div>
+<script>
+(function(){
+  var f=document.getElementById('signup'),i=document.getElementById('email'),m=f.querySelector('.signup__msg');
+  f.addEventListener('submit',function(e){
+    e.preventDefault();
+    var ok=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(i.value.trim());
+    m.textContent=ok?'Thank you — your first letter is on its way.':'Please enter a valid email address.';
+    f.classList.add('is-done'); if(ok){i.value='';i.blur();}
+  });
+})();
+</script>
+</body>
+</html>
